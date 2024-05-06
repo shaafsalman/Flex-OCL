@@ -12,12 +12,13 @@
   </eAnnotations>
   <eClassifiers xsi:type="ecore:EClass" name="Student">
     <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
-      <details key="constraints" value="StudentCanViewCourses MaxRegisteredCourses DroppedCourseNotOnTranscript"/>
+      <details key="constraints" value="StudentCanViewCourses MaxRegisteredCourses DroppedCourseNotOnTranscript CalculateCGPA"/>
     </eAnnotations>
     <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
       <details key="StudentCanViewCourses" value="&#xA;            Semester.allInstances()->forAll(s | &#xA;                Department.allInstances()->forAll(d |&#xA;                    d.offeredCourses->includesAll(s.offeredCourses)&#xA;                )&#xA;            )"/>
       <details key="MaxRegisteredCourses" value="&#xA;&#x9;&#x9;    self.transcript.semesters->forAll(s |&#xA;&#x9;&#x9;        (self.degree.type = Type::BS implies &#xA;&#x9;&#x9;            s.enrolledCourses->size() &lt;= 5&#xA;&#x9;&#x9;        ) and&#xA;&#x9;&#x9;        (self.degree.type = Type::MS implies&#xA;&#x9;&#x9;            s.enrolledCourses->size() &lt;= 3&#xA;&#x9;&#x9;        )&#xA;&#x9;&#x9;    )"/>
       <details key="DroppedCourseNotOnTranscript" value="&#xA;        self.transcript.displayedCourses->forAll(c |&#xA;            c.status &lt;> CourseStatus::dropped&#xA;        )"/>
+      <details key="CalculateCGPA" value="&#xA;        let totalCredits : Integer = self.transcript.semesters->collect(s | s.creditAttended)->sum() in&#xA;        let totalGradePoints : Real = self.transcript.semesters->collect(s | s.SGPA * s.creditAttended)->sum() in&#xA;        self.CGPA = totalGradePoints / totalCredits"/>
     </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="section" lowerBound="1"

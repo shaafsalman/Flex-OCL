@@ -10,7 +10,7 @@ course).
 6. A withdrawn course appears as a ‘W’ on the transcript.                                           done
 7. A student can drop a course within two weeks of registration.
 8. A dropped course does not appear on the transcript.                                              done
-9. CGPA is calculated by taking the aggregate of all GPAs of semesters taken so far.
+9. CGPA is calculated by taking the aggregate of all GPAs of semesters taken so far.                done
 Repeat Courses
 10. A student must repeat all failed courses.
 11. Students under warning must repeat such passed courses, in which their GPA is less than the
