@@ -17,7 +17,7 @@ course).
 
 ### Repeat Courses
 10. A student must repeat all failed courses.                                                        done
-11. Students under warning must repeat such passed courses, in which their GPA is less than the
+11. Students under warning must repeat such passed courses, in which their GPA is less than the      done
 minimum CGPA required for their degree. For example, MS students under warning (CGPA
 less than 2.50) must repeat courses in which their GPA is less than 2.50 (i.e. C or C- grade).
 12. A student can repeat a course if that course has not been passed or the student desires to
