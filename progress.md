@@ -21,8 +21,8 @@ course).
 minimum CGPA required for their degree. For example, MS students under warning (CGPA
 less than 2.50) must repeat courses in which their GPA is less than 2.50 (i.e. C or C- grade).
 12. A student can repeat a course if that course has not been passed or the student desires to
-improve his/her grade.
-13. Repeat courses will be indicated on the transcript together with the repeat count.
+improve his/her grade. 
+13. Repeat courses will be indicated on the transcript together with the repeat count.               done
 Warning
 14. A student can view the status of their warnings if any.
 15. At the end of every semester (including the first semester and summer semesters), warning is
