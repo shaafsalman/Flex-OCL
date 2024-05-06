@@ -1,3 +1,5 @@
+
+### Student
 1. A student can view the list of courses (along with other details) offered by any department in   done
 any semester.
 2. Semester can be either Fall, Spring or Summer for any year.                                      done
@@ -11,8 +13,10 @@ course).
 7. A student can drop a course within two weeks of registration.
 8. A dropped course does not appear on the transcript.                                              done
 9. CGPA is calculated by taking the aggregate of all GPAs of semesters taken so far.                done
-Repeat Courses
-10. A student must repeat all failed courses.
+
+
+### Repeat Courses
+10. A student must repeat all failed courses.                                                        done
 11. Students under warning must repeat such passed courses, in which their GPA is less than the
 minimum CGPA required for their degree. For example, MS students under warning (CGPA
 less than 2.50) must repeat courses in which their GPA is less than 2.50 (i.e. C or C- grade).

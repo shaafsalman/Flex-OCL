@@ -69,10 +69,11 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Transcript">
     <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
-      <details key="constraints" value="WithdrawnCourseW"/>
+      <details key="constraints" value="WithdrawnCourseW TrackCourseAttempts"/>
     </eAnnotations>
     <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
       <details key="WithdrawnCourseW" value="&#xA;&#x9;&#x9;&#x9;self.displayedCourses->forAll(c |&#xA;&#x9;&#x9;&#x9;&#x9;c.status = CourseStatus::withdrawn implies c.grade = Grade::W&#xA;&#x9;&#x9;&#x9;)"/>
+      <details key="TrackCourseAttempts" value="&#xA;        self.displayedCourses->forAll(c |&#xA;            let attempts : Integer = self.semesters->select(s | s.enrolledCourses->includes(c) and c.status = CourseStatus::failed)->size() in&#xA;            self.semesters->select(s | s.enrolledCourses->includes(c))->size() = attempts + 1&#xA;        )"/>
     </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EReference" name="semesters" ordered="false"
         upperBound="-1" eType="#//Semester" containment="true"/>
