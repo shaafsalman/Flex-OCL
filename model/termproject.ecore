@@ -10,16 +10,69 @@
     <details key="settingDelegates" value="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot"/>
     <details key="validationDelegates" value="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot"/>
   </eAnnotations>
+  <eClassifiers xsi:type="ecore:EClass" name="Post">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="FinancialAidForm" eSuperTypes="#//Post">
+    <eOperations name="apply">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
+        <details key="pre" value="s.realNeedOfAssistance"/>
+      </eAnnotations>
+      <eParameters name="s" lowerBound="1" eType="#//Student"/>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="applicantName" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="applicantReason" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NoticeBoard">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="posts" ordered="false"
+        upperBound="-1" eType="#//Post">
+      <eAnnotations source="http://www.eclipse.org/OCL/Collection">
+        <details key="nullFree" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Warning">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="status" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="active" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Graduation">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="graduationMonth" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Job">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="startingDate" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Student">
     <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
-      <details key="constraints" value="StudentCanViewCourses MaxRegisteredCourses DroppedCourseNotOnTranscript CalculateCGPA"/>
+      <details key="constraints" value="ViewCourseMarks ViewCourseAttendance MaintainCGPAScholarship LoanRepaymentPeriod LoanRepaymentStart DiscontinueLoan StudentCanViewCourses MaxRegisteredCourses DroppedCourseNotOnTranscript RepeatCoursesUnderWarning CalculateCGPA ViewWarnings IssueWarningAtEndOfSemester UpdateWarningCount ViewFeeDetails"/>
     </eAnnotations>
     <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
+      <details key="ViewCourseMarks" value="&#xA;&#x9;&#x9;    self.transcript.semesters->forAll(s |&#xA;&#x9;&#x9;        s.enrolledCourses->forAll(c |&#xA;&#x9;&#x9;            c.marks &lt;> null&#xA;&#x9;&#x9;        )&#xA;&#x9;&#x9;    )"/>
+      <details key="ViewCourseAttendance" value="&#xA;&#x9;&#x9;    self.transcript.semesters->forAll(s |&#xA;&#x9;&#x9;        s.enrolledCourses->forAll(c |&#xA;&#x9;&#x9;            c.attendance &lt;> null&#xA;&#x9;&#x9;        )&#xA;&#x9;&#x9;    )"/>
+      <details key="MaintainCGPAScholarship" value="&#xA;&#x9;&#x9;    self.scholarship &lt;> null and&#xA;&#x9;&#x9;    self.scholarship.coverage = 100 and&#xA;&#x9;&#x9;    self.scholarship.numSems = 8 implies&#xA;&#x9;&#x9;    self.transcript.semesters->forAll(s |&#xA;&#x9;&#x9;        s.CGPA >= 3.00&#xA;&#x9;&#x9;    )"/>
+      <details key="LoanRepaymentPeriod" value="&#xA;        &#x9;loan &lt;> null and graduation &lt;> null implies loan.repaymentEndMonths = graduation.graduationMonth + 48"/>
+      <details key="LoanRepaymentStart" value="&#xA;        let earliestMonth : Integer =&#xA;            if graduation &lt;> null and job &lt;> null then&#xA;                if graduation.graduationMonth &lt; job.startingDate then&#xA;                    graduation.graduationMonth&#xA;                else&#xA;                    job.startingDate&#xA;                endif&#xA;            else&#xA;                if graduation &lt;> null then&#xA;                    graduation.graduationMonth&#xA;                else&#xA;                    job.startingDate&#xA;                endif&#xA;            endif&#xA;        in loan.repaymentStartMonth = earliestMonth + 3"/>
+      <details key="DiscontinueLoan" value="&#xA;&#x9;&#x9;&#x9;let minCGPA : Real = if self.degree.type = Type::MS then 2.50 else 2.00 endif in&#xA;&#x9;&#x9;&#x9;self.CGPA &lt; minCGPA implies self.loan = null"/>
       <details key="StudentCanViewCourses" value="&#xA;            Semester.allInstances()->forAll(s | &#xA;                Department.allInstances()->forAll(d |&#xA;                    d.offeredCourses->includesAll(s.offeredCourses)&#xA;                )&#xA;            )"/>
       <details key="MaxRegisteredCourses" value="&#xA;&#x9;&#x9;    self.transcript.semesters->forAll(s |&#xA;&#x9;&#x9;        (self.degree.type = Type::BS implies &#xA;&#x9;&#x9;            s.enrolledCourses->size() &lt;= 5&#xA;&#x9;&#x9;        ) and&#xA;&#x9;&#x9;        (self.degree.type = Type::MS implies&#xA;&#x9;&#x9;            s.enrolledCourses->size() &lt;= 3&#xA;&#x9;&#x9;        )&#xA;&#x9;&#x9;    )"/>
       <details key="DroppedCourseNotOnTranscript" value="&#xA;        self.transcript.displayedCourses->forAll(c |&#xA;            c.status &lt;> CourseStatus::dropped&#xA;        )"/>
+      <details key="RepeatCoursesUnderWarning" value="&#xA;&#x9;        let minCGPA : Real = if self.degree.type = Type::MS then 2.50 else 2.00 endif in&#xA;&#x9;        let passedCourses : Set(Course) = self.transcript.semesters->select(s | s.CGPA >= minCGPA).enrolledCourses->asSet() in&#xA;&#x9;        let lowGpaCourses : Set(Course) = passedCourses->select(c | c.grade &lt;> Grade::A and c.grade &lt;> Grade::B) in&#xA;&#x9;        self.degree.warningCount > 0 implies self.transcript.displayedCourses->intersection(lowGpaCourses)->isEmpty()"/>
       <details key="CalculateCGPA" value="&#xA;        let totalCredits : Integer = self.transcript.semesters->collect(s | s.creditAttended)->sum() in&#xA;        let totalGradePoints : Real = self.transcript.semesters->collect(s | s.SGPA * s.creditAttended)->sum() in&#xA;        self.CGPA = totalGradePoints / totalCredits"/>
+      <details key="ViewWarnings" value="&#xA;        &#x9;self.warnings->notEmpty() implies self.warnings->exists(w | w.status &lt;> null)"/>
+      <details key="IssueWarningAtEndOfSemester" value="&#xA;&#x9;        let minCGPA : Real = if self.degree.type = Type::MS then 2.50 else 2.00 endif&#xA;&#x9;        in&#xA;&#x9;        if self.CGPA &lt; minCGPA then&#xA;&#x9;            self.warnings->exists(w | w.active = true)&#xA;&#x9;        else&#xA;&#x9;            self.warnings->isEmpty()&#xA;&#x9;        endif"/>
+      <details key="UpdateWarningCount" value="&#xA;&#x9;&#x9;    Semester.allInstances()->exists(s | s.finished = true) implies&#xA;&#x9;&#x9;        let minCGPA : Real = if self.degree.type = Type::MS then 2.50 else 2.00 endif in&#xA;&#x9;&#x9;        if self.CGPA &lt; minCGPA then&#xA;&#x9;&#x9;            self.warningCount > self.transcript.semesters->select(s | s.finished = true)->size()&#xA;&#x9;&#x9;        else&#xA;&#x9;&#x9;            self.warningCount = self.transcript.semesters->select(s | s.finished = true)->size()&#xA;&#x9;&#x9;        endif"/>
+      <details key="ViewFeeDetails" value="&#xA;        &#x9;transcript.semesters->forAll(s | s.fee &lt;> null)"/>
     </eAnnotations>
+    <eOperations name="giveExam">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
+        <details key="pre" value="transcript.semesters->forAll(s | &#xA;            &#x9;s.fee.paid or feeDefaulterApproved&#xA;        &#x9;)"/>
+      </eAnnotations>
+    </eOperations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="section" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -28,7 +81,17 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="CNIC" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="batch" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="CGPA" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigDecimal"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="needAssistance" lowerBound="1"
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="indigent" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="approvalAcquired" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="warningCount" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="currentDegreeDuration"
+        lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="feeDefaulterApproved" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="realNeedOfAssistance" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="loan" eType="#//Loan"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="scholarship" eType="#//Scholarship"/>
@@ -36,6 +99,10 @@
         eType="#//DegreeProgram"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="transcript" lowerBound="1"
         eType="#//Transcript"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="warnings" ordered="false"
+        upperBound="-1" eType="#//Warning" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="job" eType="#//Job"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="graduation" eType="#//Graduation"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="DegreeProgram">
     <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
@@ -69,11 +136,13 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Transcript">
     <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
-      <details key="constraints" value="WithdrawnCourseW TrackCourseAttempts"/>
+      <details key="constraints" value="WithdrawnCourseW TrackCourseAttempts RepeatCourseIfNotPassedOrDesired IndicateRepeatCourses"/>
     </eAnnotations>
     <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
       <details key="WithdrawnCourseW" value="&#xA;&#x9;&#x9;&#x9;self.displayedCourses->forAll(c |&#xA;&#x9;&#x9;&#x9;&#x9;c.status = CourseStatus::withdrawn implies c.grade = Grade::W&#xA;&#x9;&#x9;&#x9;)"/>
-      <details key="TrackCourseAttempts" value="&#xA;        self.displayedCourses->forAll(c |&#xA;            let attempts : Integer = self.semesters->select(s | s.enrolledCourses->includes(c) and c.status = CourseStatus::failed)->size() in&#xA;            self.semesters->select(s | s.enrolledCourses->includes(c))->size() = attempts + 1&#xA;        )"/>
+      <details key="TrackCourseAttempts" value="&#xA;&#x9;&#x9;    self.displayedCourses->forAll(c |&#xA;&#x9;&#x9;        let failedAttempts : Integer = self.semesters->select(s | s.enrolledCourses->includes(c) and c.status = CourseStatus::failed)->size() in&#xA;&#x9;&#x9;        let totalAttempts : Integer = self.semesters->select(s | s.enrolledCourses->includes(c))->size() in&#xA;&#x9;&#x9;        totalAttempts = failedAttempts + 1&#xA;    &#x9;&#x9;)"/>
+      <details key="RepeatCourseIfNotPassedOrDesired" value="&#xA;&#x9;        self.displayedCourses->forAll(c |&#xA;&#x9;            let passedOrRepeated : Boolean = self.semesters->select(s | s.enrolledCourses->includes(c) and (c.status = CourseStatus::passed or c.status = CourseStatus::repeated))->notEmpty() in&#xA;&#x9;            c.status &lt;> CourseStatus::passed implies passedOrRepeated&#xA;&#x9;        )"/>
+      <details key="IndicateRepeatCourses" value="&#xA;&#x9;        let repeatCourses : Set(Course) = self.displayedCourses->select(c | c.repeatCount > 0) in&#xA;&#x9;        repeatCourses->forAll(c |&#xA;&#x9;            let totalRepeatCount : Integer = self.semesters->select(s | s.enrolledCourses->includes(c) and c.status = CourseStatus::repeated)->size() in&#xA;&#x9;            c.repeatCount = totalRepeatCount&#xA;&#x9;        )"/>
     </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EReference" name="semesters" ordered="false"
         upperBound="-1" eType="#//Semester" containment="true"/>
@@ -82,10 +151,11 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Semester">
     <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
-      <details key="constraints" value="ValidSemesterName"/>
+      <details key="constraints" value="ValidSemesterName FeeDueDate"/>
     </eAnnotations>
     <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
       <details key="ValidSemesterName" value="name = 'Fall' or name = 'Spring' or name = 'Summer'"/>
+      <details key="FeeDueDate" value="fee.dueInWeeks = self.startingInNumWeeks - 2"/>
     </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="year" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
@@ -97,23 +167,72 @@
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="withdrawalDeadline" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//Date"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="finished" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="startingInNumWeeks" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="enrolledCourses" ordered="false"
         upperBound="-1" eType="#//Course" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="offeredCourses" ordered="false"
         upperBound="-1" eType="#//Course" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="fee" lowerBound="1" eType="#//Fee"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Department">
+    <eOperations name="grantApprovalWarning"/>
+    <eOperations name="grantDefaulterApproval"/>
+    <eOperations name="grantRetakeApproval"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="HOD" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="offeredCourses" ordered="false"
         upperBound="-1" eType="#//Course" containment="true"/>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Marks">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="quizMarks" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigDecimal"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="assignmentMarks" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigDecimal"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="midMarks" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigDecimal"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="finalMarks" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigDecimal"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="projectMarks" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigDecimal"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Date">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="year" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="month" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="day" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Course">
-    <eOperations name="Register"/>
-    <eOperations name="Drop"/>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="Attendance80Appear"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
+      <details key="Attendance80Appear" value="&#xA;&#x9;&#x9;&#x9;if attendance.attendancePercentage >= 80 then&#xA;&#x9;&#x9;&#x9;&#x9;canAppearInExam = true&#xA;&#x9;&#x9;&#x9;else&#xA;&#x9;&#x9;&#x9;&#x9;canAppearInExam = false&#xA;&#x9;&#x9;&#x9;endif"/>
+    </eAnnotations>
+    <eOperations name="requestGradeChange">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
+        <details key="pre" value="resultsAnnounced"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="requestRetake">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
+        <details key="pre" value="retakeApproved"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="Register">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
+        <details key="pre" value="self.studiedBy->forAll(s | s.warnings->isEmpty() or s.approvalAcquired)"/>
+      </eAnnotations>
+    </eOperations>
+    <eOperations name="Drop">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
+        <details key="pre" value="let diffInDays : Integer = (currentDate.year - registrationDate.year) * 365 +&#xA;&#x9;                        (currentDate.month - registrationDate.month) * 30 +&#xA;&#x9;                        (currentDate.day - registrationDate.day) in&#xA;&#x9;                     diffInDays &lt;= 14"/>
+      </eAnnotations>
+    </eOperations>
     <eOperations name="Withdraw" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
       <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
-        <details key="pre" value="self.status &lt;> CourseStatus::withdrawn"/>
+        <details key="pre" value="self.status &lt;> CourseStatus::withdrawn and currentDate.year &lt; announcedDate.year or&#xA;&#x9;            (currentDate.year = announcedDate.year and currentDate.month &lt; announcedDate.month) or&#xA;&#x9;            (currentDate.year = announcedDate.year and currentDate.month = announcedDate.month and currentDate.day &lt; announcedDate.day)"/>
       </eAnnotations>
     </eOperations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="courseName" lowerBound="1"
@@ -124,15 +243,34 @@
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="repeatCount" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="currentDate" lowerBound="1"
+        eType="#//Date"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="announcedDate" lowerBound="1"
+        eType="#//Date"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="registrationDate" lowerBound="1"
+        eType="#//Date"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="canAppearInExam" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="grade" lowerBound="1" eType="#//Grade"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="status" lowerBound="1"
         eType="#//CourseStatus"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="importance" lowerBound="1"
         eType="#//CourseImportance"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="resultsAnnounced" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="retakeApproved" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="attendance" lowerBound="1"
         eType="#//Attendance"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="semester" lowerBound="1"
         eType="#//Semester"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="studiedBy" ordered="false"
+        upperBound="-1" eType="#//Student">
+      <eAnnotations source="http://www.eclipse.org/OCL/Collection">
+        <details key="nullFree" value="false"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="marks" lowerBound="1" eType="#//Marks"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Attendance">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="numLectures" lowerBound="1"
@@ -146,6 +284,14 @@
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Campus" eSuperTypes="#//University">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="MeritScholarshipForTopThree CloseStudentAdmission CancelAdmissionAfterMaxDuration"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
+      <details key="MeritScholarshipForTopThree" value="&#xA;&#x9;        meritList.positionHolders->forAll(ph |&#xA;&#x9;            ph.scholarship &lt;> null&#xA;&#x9;        )"/>
+      <details key="CloseStudentAdmission" value="&#xA;        &#x9;studentList->forAll(s | s.warningCount &lt; 3 and s.warnings->size() &lt; 3)"/>
+      <details key="CancelAdmissionAfterMaxDuration" value="&#xA;        &#x9;studentList->forAll(s | s.degree.maxTime >= s.currentDegreeDuration)"/>
+    </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="location" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="meritList" lowerBound="1"
@@ -159,21 +305,33 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="positionHolders" ordered="false"
         upperBound="-1" eType="#//PositionHolder"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="PositionHolder">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  <eClassifiers xsi:type="ecore:EClass" name="PositionHolder" eSuperTypes="#//Student">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="paper" lowerBound="1" eType="#//Paper"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Loan">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="RenewEverySemester AssistanceLimitedToFees"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
+      <details key="RenewEverySemester" value="&#xA;&#x9;&#x9;&#x9;renewedEverySemester = true"/>
+      <details key="AssistanceLimitedToFees" value="&#xA;&#x9;&#x9;&#x9;assistanceType = 'Fees'"/>
+    </eAnnotations>
+    <eOperations name="applyForLoan">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
+        <details key="pre" value="s.indigent = true"/>
+      </eAnnotations>
+      <eParameters name="s" lowerBound="1" eType="#//Student"/>
+    </eOperations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="eligible" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigDecimal"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="renewalCriteriaMet" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="assistanceType" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="repaymentStartDate" lowerBound="1"
-        eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//Date"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="repaymentEndDate" lowerBound="1"
-        eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//Date"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="repaymentStartMonth" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="repaymentEndMonths" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="renewedEverySemester" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
   </eClassifiers>
@@ -188,6 +346,13 @@
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Fee">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore">
+      <details key="constraints" value="FeePaymentMethod NonRefundable"/>
+    </eAnnotations>
+    <eAnnotations source="http://www.eclipse.org/emf/2002/Ecore/OCL/Pivot">
+      <details key="FeePaymentMethod" value="&#xA;&#x9;&#x9;&#x9;paymentMethod = 'Challan'"/>
+      <details key="NonRefundable" value="&#xA;&#x9;&#x9;&#x9;if self.type = FeeType::Normal then&#xA;&#x9;&#x9;&#x9;&#x9;refund = false&#xA;&#x9;&#x9;&#x9;else&#xA;&#x9;&#x9;&#x9;&#x9;refund = true&#xA;&#x9;&#x9;&#x9;endif"/>
+    </eAnnotations>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="amount" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="refund" lowerBound="1"
@@ -195,6 +360,13 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="paid" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="paymentMethod" lowerBound="1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="dueInWeeks" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBigInteger"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" lowerBound="1" eType="#//FeeType"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="FeeType">
+    <eLiterals name="Normal"/>
+    <eLiterals name="Security"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="Grade">
     <eLiterals name="A"/>
@@ -210,6 +382,7 @@
     <eLiterals name="failed"/>
     <eLiterals name="withdrawn"/>
     <eLiterals name="dropped"/>
+    <eLiterals name="repeated"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="CourseImportance">
     <eLiterals name="elective"/>

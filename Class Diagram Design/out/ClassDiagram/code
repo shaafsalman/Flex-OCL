@@ -1,0 +1,510 @@
+import ecore : 'http://www.eclipse.org/emf/2002/Ecore';
+import _'ecore.xml.type' : 'http://www.eclipse.org/emf/2003/XMLType';
+
+package termproject : termproject = 'http://www.example.org/termproject'
+{
+	class Post {
+		attribute name: String;
+	}
+	
+	class FinancialAidForm extends Post {
+		attribute applicantName: String;
+		attribute applicantReason: String;
+		
+		-- Constraint 31
+		operation apply(s: Student) {
+			precondition: s.realNeedOfAssistance;
+		}
+	}
+	
+	class NoticeBoard {
+		property posts: Post[*];
+		
+	}
+	
+	class Warning {
+    	attribute status : String;
+    	attribute active: Boolean;
+    }
+    
+    class Graduation {
+    	attribute graduationMonth: Integer;
+    }
+    
+    class Job {
+    	attribute startingDate: Integer;
+    }
+    
+	class Student
+	{
+		attribute name : String;
+		attribute section : String;
+		attribute rollNumber : Integer;
+		attribute CNIC : Integer;
+		attribute batch : Integer;
+		attribute CGPA : Real;
+		attribute indigent: Boolean;
+		attribute approvalAcquired: Boolean;
+		attribute warningCount: Integer;
+		attribute currentDegreeDuration: Integer;
+		attribute feeDefaulterApproved: Boolean;
+		attribute realNeedOfAssistance: Boolean;
+
+		
+		property loan: Loan[?];
+		property scholarship: Scholarship[?];
+		property degree : DegreeProgram[1];
+		property transcript : Transcript[1];
+		property warnings : Warning[*|1] {composes};
+		property job: Job[?];
+		property graduation: Graduation[?];
+		
+		-- Constraint 37
+		invariant ViewCourseMarks:
+		    self.transcript.semesters->forAll(s |
+		        s.enrolledCourses->forAll(c |
+		            c.marks <> null
+		        )
+		    );
+		
+		--Constraint 35
+		invariant ViewCourseAttendance:
+		    self.transcript.semesters->forAll(s |
+		        s.enrolledCourses->forAll(c |
+		            c.attendance <> null
+		        )
+		    );
+		
+		
+		-- Constraint 34
+		invariant MaintainCGPAScholarship:
+		    self.scholarship <> null and
+		    self.scholarship.coverage = 100 and
+		    self.scholarship.numSems = 8 implies
+		    self.transcript.semesters->forAll(s |
+		        s.CGPA >= 3.00
+		    );
+			
+		
+		-- Constraint 30
+		invariant LoanRepaymentPeriod:
+        	loan <> null and graduation <> null implies loan.repaymentEndMonths = graduation.graduationMonth + 48;
+			
+		--Constraint 29 
+		invariant LoanRepaymentStart:
+        let earliestMonth : Integer =
+            if graduation <> null and job <> null then
+                if graduation.graduationMonth < job.startingDate then
+                    graduation.graduationMonth
+                else
+                    job.startingDate
+                endif
+            else
+                if graduation <> null then
+                    graduation.graduationMonth
+                else
+                    job.startingDate
+                endif
+            endif
+        in loan.repaymentStartMonth = earliestMonth + 3;
+		
+		-- Constraint 28
+		invariant DiscontinueLoan:
+			let minCGPA : Real = if self.degree.type = Type::MS then 2.50 else 2.00 endif in
+			self.CGPA < minCGPA implies self.loan = null;
+			
+		
+		--Constraint 24
+		operation giveExam() {
+			precondition: transcript.semesters->forAll(s | 
+            	s.fee.paid or feeDefaulterApproved
+        	);
+		}
+		
+		-- Constraint 1
+		invariant StudentCanViewCourses:
+            Semester.allInstances()->forAll(s | 
+                Department.allInstances()->forAll(d |
+                    d.offeredCourses->includesAll(s.offeredCourses)
+                )
+            );
+            
+            
+            
+        -- Constraint 4
+	    invariant MaxRegisteredCourses:
+		    self.transcript.semesters->forAll(s |
+		        (self.degree.type = Type::BS implies 
+		            s.enrolledCourses->size() <= 5
+		        ) and
+		        (self.degree.type = Type::MS implies
+		            s.enrolledCourses->size() <= 3
+		        )
+		    );
+		    
+		  -- Constraint 8
+	      invariant DroppedCourseNotOnTranscript:
+        self.transcript.displayedCourses->forAll(c |
+            c.status <> CourseStatus::dropped
+        );
+            
+		-- Constraint 11   
+        invariant RepeatCoursesUnderWarning:
+	        let minCGPA : Real = if self.degree.type = Type::MS then 2.50 else 2.00 endif in
+	        let passedCourses : Set(Course) = self.transcript.semesters->select(s | s.CGPA >= minCGPA).enrolledCourses->asSet() in
+	        let lowGpaCourses : Set(Course) = passedCourses->select(c | c.grade <> Grade::A and c.grade <> Grade::B) in
+	        self.degree.warningCount > 0 implies self.transcript.displayedCourses->intersection(lowGpaCourses)->isEmpty();
+            
+        -- Constraint 9: CGPA calculation invariant
+        invariant CalculateCGPA:
+        let totalCredits : Integer = self.transcript.semesters->collect(s | s.creditAttended)->sum() in
+        let totalGradePoints : Real = self.transcript.semesters->collect(s | s.SGPA * s.creditAttended)->sum() in
+        self.CGPA = totalGradePoints / totalCredits;
+        
+        -- Constraint 14
+        invariant ViewWarnings:
+        	self.warnings->notEmpty() implies self.warnings->exists(w | w.status <> null);
+        
+        -- Constraint 15 and later half of 18 (make warning zero)
+        invariant IssueWarningAtEndOfSemester:
+	        let minCGPA : Real = if self.degree.type = Type::MS then 2.50 else 2.00 endif
+	        in
+	        if self.CGPA < minCGPA then
+	            self.warnings->exists(w | w.active = true)
+	        else
+	            self.warnings->isEmpty()
+	        endif;
+
+
+		-- Constraint 17
+		invariant UpdateWarningCount:
+		    Semester.allInstances()->exists(s | s.finished = true) implies
+		        let minCGPA : Real = if self.degree.type = Type::MS then 2.50 else 2.00 endif in
+		        if self.CGPA < minCGPA then
+		            self.warningCount > self.transcript.semesters->select(s | s.finished = true)->size()
+		        else
+		            self.warningCount = self.transcript.semesters->select(s | s.finished = true)->size()
+		        endif;
+		
+		   -- Constraint 20
+		invariant ViewFeeDetails:
+        	transcript.semesters->forAll(s | s.fee <> null);
+
+	    
+		        
+        
+	}
+
+	class DegreeProgram
+	{
+		attribute name : String;
+		attribute type: Type;
+		attribute warningCount : Integer;
+		attribute minCGPA : Real;
+		attribute maxTime : Integer;
+		attribute onWarning : Boolean;
+		
+		property coreCourses : Course[*];
+        property electiveCourses : Course[*];
+		
+		-- Constraint 3
+		invariant AllCoreCoursesTaken:
+            self.coreCourses->forAll(c | 
+                Student.allInstances()->exists(s | 
+                    s.transcript.displayedCourses->includes(c)
+                )
+            );
+	}
+
+	class Transcript
+	{
+		property semesters : Semester[*|1] { composes };
+		property displayedCourses : Course[*|1];
+		
+		-- Constraint 6
+		invariant WithdrawnCourseW:
+			self.displayedCourses->forAll(c |
+				c.status = CourseStatus::withdrawn implies c.grade = Grade::W
+			);
+			
+			
+			-- Constraint 10
+		   invariant TrackCourseAttempts:
+		    self.displayedCourses->forAll(c |
+		        let failedAttempts : Integer = self.semesters->select(s | s.enrolledCourses->includes(c) and c.status = CourseStatus::failed)->size() in
+		        let totalAttempts : Integer = self.semesters->select(s | s.enrolledCourses->includes(c))->size() in
+		        totalAttempts = failedAttempts + 1
+    		);
+
+        
+		-- Constraint 12
+         invariant RepeatCourseIfNotPassedOrDesired:
+	        self.displayedCourses->forAll(c |
+	            let passedOrRepeated : Boolean = self.semesters->select(s | s.enrolledCourses->includes(c) and (c.status = CourseStatus::passed or c.status = CourseStatus::repeated))->notEmpty() in
+	            c.status <> CourseStatus::passed implies passedOrRepeated
+	        );
+        
+        -- Constraint 13
+        invariant IndicateRepeatCourses:
+	        let repeatCourses : Set(Course) = self.displayedCourses->select(c | c.repeatCount > 0) in
+	        repeatCourses->forAll(c |
+	            let totalRepeatCount : Integer = self.semesters->select(s | s.enrolledCourses->includes(c) and c.status = CourseStatus::repeated)->size() in
+	            c.repeatCount = totalRepeatCount
+	        );
+			
+	}
+
+	class Semester
+	{
+		attribute name : String;
+		attribute year : Integer;
+		attribute SGPA : Real;
+		attribute CGPA : Real;
+		attribute creditAttended : Integer;
+		attribute creditEarned : Integer;
+		attribute withdrawalDeadline: _'ecore.xml.type'::Date;
+		attribute finished : Boolean;
+		attribute startingInNumWeeks: Integer;
+		
+		property enrolledCourses : Course[*|1] { composes };
+		property offeredCourses: Course[*|1] {composes};
+		property fee: Fee[1];
+		
+		-- Constraint 2
+		invariant ValidSemesterName: name = 'Fall' or name = 'Spring' or name = 'Summer';
+		
+		-- Constraint 21
+		invariant FeeDueDate: fee.dueInWeeks = self.startingInNumWeeks - 2;
+	}
+
+	class Department
+	{
+		attribute name : String;
+		attribute HOD : String;
+		property offeredCourses : Course[*|1] { composes };
+		
+		operation grantApprovalWarning();
+		operation grantDefaulterApproval();
+		operation grantRetakeApproval();
+	}
+	
+	class Marks {
+		attribute quizMarks: Real;
+		attribute assignmentMarks: Real;
+		attribute midMarks: Real;
+		attribute finalMarks: Real;
+		attribute projectMarks: Real;
+	}
+	
+	class Date {
+		attribute year: Integer;
+		attribute month: Integer;
+		attribute day: Integer;
+	}
+
+	class Course
+	{
+		-- Constraint 38
+		operation requestGradeChange() {
+			precondition: resultsAnnounced;
+		}
+		
+		-- Constraint 39
+		operation requestRetake() {
+			precondition: retakeApproved;
+		}
+		-- Constraint 16
+		operation Register() {
+			precondition: self.studiedBy->forAll(s | s.warnings->isEmpty() or s.approvalAcquired);
+		}
+		
+		-- Constraint 7
+		operation Drop() {
+	        precondition: let diffInDays : Integer = (currentDate.year - registrationDate.year) * 365 +
+	                        (currentDate.month - registrationDate.month) * 30 +
+	                        (currentDate.day - registrationDate.day) in
+	                     diffInDays <= 14;
+    	}
+		
+		-- Constraint 5 
+		operation Withdraw() : Boolean[1] {
+	        precondition: self.status <> CourseStatus::withdrawn and currentDate.year < announcedDate.year or
+	            (currentDate.year = announcedDate.year and currentDate.month < announcedDate.month) or
+	            (currentDate.year = announcedDate.year and currentDate.month = announcedDate.month and currentDate.day < announcedDate.day);
+    	}
+
+		attribute courseName : String;
+		attribute courseCode : String;
+		attribute creditHours : Integer;
+		attribute repeatCount : Integer;
+		
+		attribute currentDate: Date;
+		attribute announcedDate: Date;
+		attribute registrationDate: Date;
+		
+		attribute canAppearInExam: Boolean;
+		
+		attribute grade : Grade;
+		attribute status : CourseStatus;
+		attribute importance : CourseImportance;
+		attribute resultsAnnounced : Boolean;
+		attribute retakeApproved: Boolean;
+		
+		property attendance: Attendance[1];
+		property semester: Semester[1];
+		property studiedBy: Student[*];
+		property marks: Marks[1];
+		
+		-- Constraint 36
+		invariant Attendance80Appear:
+			if attendance.attendancePercentage >= 80 then
+				canAppearInExam = true
+			else
+				canAppearInExam = false
+			endif;
+			
+		
+	}
+
+	class Attendance
+	{
+		attribute numLectures : Integer;
+		attribute attendancePercentage : Real;
+	}
+
+	class University
+	{
+		attribute name : String;
+		attribute ranking : Integer;
+	}
+
+	class Campus extends University
+	{
+		attribute location : String;
+		
+		property meritList : MeritList[1];
+		property studentList : Student[*|1];
+		property departmentList: Department[*|1];
+		
+		-- Constraint 32 and 33
+		invariant MeritScholarshipForTopThree:
+	        meritList.positionHolders->forAll(ph |
+	            ph.scholarship <> null
+	        );
+		
+		--Constraint 18 ( first half)
+		 invariant CloseStudentAdmission:
+        	studentList->forAll(s | s.warningCount < 3 and s.warnings->size() < 3);
+        	
+        --Constraint 19
+        invariant CancelAdmissionAfterMaxDuration:
+        	studentList->forAll(s | s.degree.maxTime >= s.currentDegreeDuration);
+	}
+
+	class MeritList
+	{
+		property positionHolders : PositionHolder[*|1];
+	}
+
+	class PositionHolder extends Student
+	{
+		attribute paper : Paper;
+	}
+
+	class Loan
+	{
+		attribute eligible : Real;
+		attribute renewalCriteriaMet : Boolean;
+		attribute assistanceType : String;
+		attribute repaymentStartMonth : Integer;
+		attribute repaymentEndMonths : Integer;
+		attribute renewedEverySemester : Boolean;
+		
+		-- Constraint 25
+		operation applyForLoan(s: Student) {
+			precondition: s.indigent = true;
+		}
+		
+		-- Constraint 26
+		invariant RenewEverySemester:
+			renewedEverySemester = true;
+		
+		-- Constraint 27
+		invariant AssistanceLimitedToFees:
+			assistanceType = 'Fees';
+	}
+
+	class Scholarship
+	{
+		attribute offered : Boolean;
+		attribute awarded : Boolean;
+		attribute coverage : Real;
+		attribute numSems : Integer;
+	}
+
+	class Fee
+	{
+		attribute amount : Integer;
+		attribute refund : Boolean;
+		attribute paid : Boolean;
+		attribute paymentMethod : String;
+		attribute dueInWeeks: Integer;
+		attribute type : FeeType;
+		
+		-- Constraint 22
+		invariant FeePaymentMethod:
+			paymentMethod = 'Challan';
+			
+		-- Constraint 23
+		invariant NonRefundable:
+			if self.type = FeeType::Normal then
+				refund = false
+			else
+				refund = true
+			endif;
+	}
+	
+	enum FeeType { serializable }
+	{
+		Normal;
+		Security;
+	}
+
+	enum Grade { serializable }
+	{
+		A;
+		B;
+		C;
+		D;
+		E;
+		F;
+		W;
+	}
+
+	enum CourseStatus { serializable }
+	{
+		passed;
+		failed;
+		withdrawn;
+		dropped;
+		repeated;
+	}
+
+	enum CourseImportance { serializable }
+	{
+		elective;
+		core;
+	}
+
+	enum Paper { serializable }
+	{
+		board;
+		NU;
+	}
+	
+	enum Type { serializable }
+	{
+		MS;
+		BS;
+	}
+}

@@ -1,0 +1,247 @@
+@startuml
+
+!define Color_Class #87CEEB
+!define Color_Relationship #696969
+!define Color_Enum #98FB98
+
+skinparam class {
+    BackgroundColor Color_Class
+    BorderColor Black
+    ArrowColor Color_Relationship
+    FontSize 14
+}
+
+skinparam enum {
+    BackgroundColor Color_Enum
+    BorderColor Black
+}
+
+package "Term Project" {
+    class Post {
+        +name: String
+    }
+
+    class FinancialAidForm {
+        +applicantName: String
+        +applicantReason: String
+    }
+
+    class NoticeBoard {
+        -posts: Post[*]
+    }
+
+    class Warning {
+        +status: String
+        +active: Boolean
+    }
+
+    class Graduation {
+        +graduationMonth: Integer
+    }
+
+    class Job {
+        +startingDate: Integer
+    }
+
+    class Student {
+        +name: String
+        +section: String
+        +rollNumber: Integer
+        +CNIC: Integer
+        +batch: Integer
+        +CGPA: Real
+        +indigent: Boolean
+        +approvalAcquired: Boolean
+        +warningCount: Integer
+        +currentDegreeDuration: Integer
+        +feeDefaulterApproved: Boolean
+        +realNeedOfAssistance: Boolean
+        -loan: Loan[?]
+        -scholarship: Scholarship[?]
+        -degree: DegreeProgram[1]
+        -transcript: Transcript[1]
+        -warnings: Warning[*|1]
+        -job: Job[?]
+        -graduation: Graduation[?]
+    }
+
+    class DegreeProgram {
+        +name: String
+        +type: Type
+        +warningCount: Integer
+        +minCGPA: Real
+        +maxTime: Integer
+        +onWarning: Boolean
+        -coreCourses: Course[*]
+        -electiveCourses: Course[*]
+    }
+
+    class Transcript {
+        -semesters: Semester[*|1]
+        -displayedCourses: Course[*|1]
+    }
+
+    class Semester {
+        +name: String
+        +year: Integer
+        +SGPA: Real
+        +CGPA: Real
+        +creditAttended: Integer
+        +creditEarned: Integer
+        +withdrawalDeadline: Date
+        +finished: Boolean
+        +startingInNumWeeks: Integer
+        -enrolledCourses: Course[*|1]
+        -offeredCourses: Course[*|1]
+        -fee: Fee[1]
+    }
+
+    class Department {
+        +name: String
+        +HOD: String
+        -offeredCourses: Course[*|1]
+    }
+
+    class Marks {
+        +quizMarks: Real
+        +assignmentMarks: Real
+        +midMarks: Real
+        +finalMarks: Real
+        +projectMarks: Real
+    }
+
+    class Date {
+        +year: Integer
+        +month: Integer
+        +day: Integer
+    }
+
+    class Course {
+        +courseName: String
+        +courseCode: String
+        +creditHours: Integer
+        +repeatCount: Integer
+        +currentDate: Date
+        +announcedDate: Date
+        +registrationDate: Date
+        +canAppearInExam: Boolean
+        +grade: Grade
+        +status: CourseStatus
+        +importance: CourseImportance
+        +resultsAnnounced: Boolean
+        +retakeApproved: Boolean
+        -attendance: Attendance[1]
+        -semester: Semester[1]
+        -studiedBy: Student[*]
+        -marks: Marks[1]
+    }
+
+    class Attendance {
+        +numLectures: Integer
+        +attendancePercentage: Real
+    }
+
+    class University {
+        +name: String
+        +ranking: Integer
+    }
+
+    class Campus {
+        +location: String
+        -meritList: MeritList[1]
+        -studentList: Student[*|1]
+        -departmentList: Department[*|1]
+    }
+
+    class MeritList {
+        -positionHolders: PositionHolder[*|1]
+    }
+
+    class PositionHolder {
+        +paper: Paper
+    }
+
+    class Loan {
+        +eligible: Real
+        +renewalCriteriaMet: Boolean
+        +assistanceType: String
+        +repaymentStartMonth: Integer
+        +repaymentEndMonths: Integer
+        +renewedEverySemester: Boolean
+    }
+
+    class Scholarship {
+        +offered: Boolean
+        +awarded: Boolean
+        +coverage: Real
+        +numSems: Integer
+    }
+
+    class Fee {
+        +amount: Integer
+        +refund: Boolean
+        +paid: Boolean
+        +paymentMethod: String
+        +dueInWeeks: Integer
+        +type: FeeType
+    }
+
+    enum FeeType {
+        Normal
+        Security
+    }
+
+    enum Grade {
+        A
+        B
+        C
+        D
+        E
+        F
+        W
+    }
+
+    enum CourseStatus {
+        passed
+        failed
+        withdrawn
+        dropped
+        repeated
+    }
+
+    enum CourseImportance {
+        elective
+        core
+    }
+
+    enum Paper {
+        board
+        NU
+    }
+
+    enum Type {
+        MS
+        BS
+    }
+
+    Student "1" -- "0..*" Loan
+    Student "1" -- "0..*" Scholarship
+    Student "1" -- "1" DegreeProgram
+    Student "1" -- "1" Transcript
+    Student "1" -- "0..*" Warning
+
+    DegreeProgram "1" -- "0..*" Course
+    DegreeProgram "1" -- "0..*" Course
+    Transcript "1" -- "0..*" Semester
+    Semester "1" -- "0..*" Course
+    Semester "1" -- "1" Fee
+    Semester "1" -- "0..*" Course
+    Campus "1" -- "1" MeritList
+    MeritList "1" -- "0..*" PositionHolder
+    Student "1" -- "0..*" Job
+    Student "1" -- "0..*" Graduation
+    Semester "1" -- "0..*" Fee
+
+}
+
+@enduml

@@ -1,11 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/termproject/src-gen" creationIcons="false" editDirectory="/termproject.edit/src-gen"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel"
+    modelDirectory="/termproject/src-gen" creationIcons="false" editDirectory="/termproject.edit/src-gen"
     editorDirectory="/termproject.editor/src-gen" modelPluginID="termproject" modelName="Termproject"
     rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container" codeFormatting="true"
     importerID="org.eclipse.emf.importer.ecore" complianceLevel="21.0" copyrightFields="false"
     operationReflection="true" importOrganizing="true">
   <foreignModel>termproject.ecore</foreignModel>
   <testsDirectory xsi:nil="true"/>
-  <genPackages prefix="Termproject" disposableProviderFactory="true" ecorePackage="termproject.ecore#/"/>
+  <genPackages prefix="Termproject" disposableProviderFactory="true" ecorePackage="termproject.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="termproject.ecore#//FeeType">
+      <genEnumLiterals ecoreEnumLiteral="termproject.ecore#//FeeType/Normal"/>
+      <genEnumLiterals ecoreEnumLiteral="termproject.ecore#//FeeType/Security"/>
+    </genEnums>
+    <genClasses ecoreClass="termproject.ecore#//Post">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//Post/name"/>
+    </genClasses>
+    <genClasses ecoreClass="termproject.ecore#//FinancialAidForm">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//FinancialAidForm/applicantName"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//FinancialAidForm/applicantReason"/>
+      <genOperations ecoreOperation="termproject.ecore#//FinancialAidForm/apply">
+        <genParameters ecoreParameter="termproject.ecore#//FinancialAidForm/apply/s"/>
+      </genOperations>
+    </genClasses>
+    <genClasses ecoreClass="termproject.ecore#//NoticeBoard">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference termproject.ecore#//NoticeBoard/posts"/>
+    </genClasses>
+    <genClasses ecoreClass="termproject.ecore#//Warning">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//Warning/status"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//Warning/active"/>
+    </genClasses>
+    <genClasses ecoreClass="termproject.ecore#//Graduation">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//Graduation/graduationMonth"/>
+    </genClasses>
+    <genClasses ecoreClass="termproject.ecore#//Job">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//Job/startingDate"/>
+    </genClasses>
+    <genClasses ecoreClass="termproject.ecore#//Marks">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//Marks/quizMarks"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//Marks/assignmentMarks"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//Marks/midMarks"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//Marks/finalMarks"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//Marks/projectMarks"/>
+    </genClasses>
+    <genClasses ecoreClass="termproject.ecore#//Date">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//Date/year"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//Date/month"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute termproject.ecore#//Date/day"/>
+    </genClasses>
+  </genPackages>
 </genmodel:GenModel>

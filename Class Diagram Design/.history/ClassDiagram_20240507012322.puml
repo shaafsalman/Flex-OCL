@@ -1,0 +1,212 @@
+package termproject : termproject = 'http://www.example.org/termproject' {
+
+    class Post {
+        + name : String[1]
+    }
+
+    class FinancialAidForm {
+        + applicantName : String[1]
+        + applicantReason : String[1]
+        + apply(s : Student[1])
+    }
+
+    class NoticeBoard {
+        - posts : Post[*]
+    }
+
+    class Warning {
+        + status : String[1]
+        + active : Boolean[1]
+    }
+
+    class Graduation {
+        + graduationMonth : Integer[1]
+    }
+
+    class Job {
+        + startingDate : Integer[1]
+    }
+
+    class Student {
+        + name : String[1]
+        + section : String[1]
+        + rollNumber : Integer[1]
+        + CNIC : Integer[1]
+        + batch : Integer[1]
+        + CGPA : Real[1]
+        + indigent : Boolean[1]
+        + approvalAcquired : Boolean[1]
+        + warningCount : Integer[1]
+        + currentDegreeDuration : Integer[1]
+        + feeDefaulterApproved : Boolean[1]
+        + realNeedOfAssistance : Boolean[1]
+        - loan : Loan[?]
+        - scholarship : Scholarship[?]
+        - degree : DegreeProgram[1]
+        - transcript : Transcript[1]
+        - warnings : Warning[*|1]
+        - job : Job[?]
+        - graduation : Graduation[?]
+        + giveExam()
+    }
+
+    class DegreeProgram {
+        + name : String[1]
+        + type : Type[1]
+        + warningCount : Integer[1]
+        + minCGPA : Real[1]
+        + maxTime : Integer[1]
+        + onWarning : Boolean[1]
+        - coreCourses : Course[*]
+        - electiveCourses : Course[*]
+    }
+
+    class Transcript {
+        - semesters : Semester[*|1]
+        - displayedCourses : Course[*|1]
+    }
+
+    class Semester {
+        + name : String[1]
+        + year : Integer[1]
+        + SGPA : Real[1]
+        + CGPA : Real[1]
+        + creditAttended : Integer[1]
+        + creditEarned : Integer[1]
+        + withdrawalDeadline : Date[1]
+        + finished : Boolean[1]
+        + startingInNumWeeks : Integer[1]
+        - enrolledCourses : Course[*|1]
+        - offeredCourses : Course[*|1]
+        - fee : Fee[1]
+    }
+
+    class Department {
+        + name : String[1]
+        + HOD : String[1]
+        - offeredCourses : Course[*|1]
+        + grantApprovalWarning()
+        + grantDefaulterApproval()
+        + grantRetakeApproval()
+    }
+
+    class Marks {
+        + quizMarks : Real[1]
+        + assignmentMarks : Real[1]
+        + midMarks : Real[1]
+        + finalMarks : Real[1]
+        + projectMarks : Real[1]
+    }
+
+    class Date {
+        + year : Integer[1]
+        + month : Integer[1]
+        + day : Integer[1]
+    }
+
+    class Course {
+        + courseName : String[1]
+        + courseCode : String[1]
+        + creditHours : Integer[1]
+        + repeatCount : Integer[1]
+        - currentDate : Date[1]
+        - announcedDate : Date[1]
+        - registrationDate : Date[1]
+        + canAppearInExam : Boolean[1]
+        + grade : Grade[1]
+        + status : CourseStatus[1]
+        + importance : CourseImportance[1]
+        + resultsAnnounced : Boolean[1]
+        + retakeApproved : Boolean[1]
+        - attendance : Attendance[1]
+        - semester : Semester[1]
+        - studiedBy : Student[*]
+        - marks : Marks[1]
+        + requestGradeChange()
+        + requestRetake()
+        + Register()
+        + Drop()
+        + Withdraw()
+    }
+
+    class Attendance {
+        + numLectures : Integer[1]
+        + attendancePercentage : Real[1]
+    }
+
+    class University {
+        + name : String[1]
+        + ranking : Integer[1]
+    }
+
+    class Campus extends University {
+        + location : String[1]
+        - meritList : MeritList[1]
+        - studentList : Student[*|1]
+        - departmentList : Department[*|1]
+    }
+
+    class MeritList {
+        - positionHolders : PositionHolder[*|1]
+    }
+
+    class PositionHolder extends Student {
+        + paper : Paper[1]
+    }
+
+    class Loan {
+        + eligible : Real[1]
+        + renewalCriteriaMet : Boolean[1]
+        + assistanceType : String[1]
+        + repaymentStartMonth : Integer[1]
+        + repaymentEndMonths : Integer[1]
+        + renewedEverySemester : Boolean[1]
+        + applyForLoan(s : Student[1])
+    }
+
+    class Scholarship {
+        + offered : Boolean[1]
+        + awarded : Boolean[1]
+        + coverage : Real[1]
+        + numSems : Integer[1]
+    }
+
+    class Fee {
+        + amount : Integer[1]
+        + refund : Boolean[1]
+        + paid : Boolean[1]
+        + paymentMethod : String[1]
+        + dueInWeeks : Integer[1]
+        + type : FeeType[1]
+    }
+
+    class CourseStatus { serializable }
+    class CourseImportance { serializable }
+    class Grade { serializable }
+    class Type { serializable }
+    class Paper { serializable }
+    class FeeType { serializable }
+
+    Post <|-- FinancialAidForm
+    Post o-- NoticeBoard : Contains
+    Student --> FinancialAidForm : Applies
+    Student --> Loan : Manages
+    Student --> Scholarship : Manages
+    Student --> Transcript : Has
+    Student --> Job : Gets
+    Student --> Graduation : Plans
+    Student "1"-->"0..*" Warning : Has
+    Student --> DegreeProgram : Enrolled In
+    DegreeProgram "0..*" -- Course : Includes
+    Department "1"--"*" Course : Offers
+    Semester -- Course : Enrolled
+    Semester --> Fee : Requires
+    Department o-- Semester : Offers
+    Student --> Course : Enrolled
+    Course o-- Attendance : Has
+    Campus --> MeritList : Holds
+    MeritList "0..*" -- PositionHolder : Recognizes
+
+}
+
+@enduml
